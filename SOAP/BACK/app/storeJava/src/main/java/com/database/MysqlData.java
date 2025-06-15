@@ -1,10 +1,18 @@
 package com.database;
 
+import com.struct.Campo;
+import com.struct.Registro;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
 import java.sql.ResultSet;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+
+import java.util.List;
+import java.util.ArrayList;
 
 public class MysqlData{
   private String host;
@@ -29,39 +37,29 @@ public class MysqlData{
     }
   }
 
-  public void getDataColumn (String column) throws Exception{
-    String query = "SELECT * FROM Departamentos";
+  public List<Registro> getDataTabla(String tabla) throws Exception{
+    String query = "SELECT * FROM " + tabla;
+    List<Registro> registros = new ArrayList<>();
     try{
       Connection cn = this.connectionDB();
       Statement st = cn.createStatement();
       ResultSet rs = st.executeQuery(query);
-      System.out.println("TABLA Departamentos");
+      ResultSetMetaData metaData = rs.getMetaData();
+      int columnas = metaData.getColumnCount();
       while (rs.next()) {
-        String name = rs.getString(column);
-        System.out.println(name);
+        Registro registro = new Registro();
+        for (int i = 1; i <= columnas; i++) {
+          String nombreColumna = metaData.getColumnName(i);
+          Object valor = rs.getObject(i);
+          Campo campo = new Campo(nombreColumna, valor);
+          registro.addCampo(campo);
+        }
+        registros.add(registro);
       }
-      st.close();
-      cn.close();
-    }catch(SQLException e){
-      System.out.println(e);
+    }catch (SQLException e) {
+      System.out.println("Error al obtener datos: " + e.getMessage());
     }
-    System.out.println("Conexion cerrada con la base de datos "+this.db);
-  }
-
-  public ResultSet getData() throws Exception{
-    String query = "SELECT * FROM Departamentos";
-    try{
-      Connection cn = this.connectionDB();
-      Statement st = cn.createStatement();
-      ResultSet rs = st.executeQuery(query);
-      System.out.println("TABLA Departamentos");
-      st.close();
-      cn.close();
-      return rs;
-    }catch(SQLException e){
-      System.out.println(e);
-    }
-    System.out.println("Conexion cerrada con la base de datos "+this.db);
-    return null;
+    System.out.println("Conexión cerrada con la base de datos " + this.db);
+    return registros;
   }
 }

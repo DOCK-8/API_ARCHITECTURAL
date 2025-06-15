@@ -1,15 +1,25 @@
 package com.store;
-/**
- * Hello world!
- *
- */
-import jakarta.xml.ws.Endpoint;
 
-public class App 
-{
-    public static void main( String[] args )
-    {
-        Endpoint.publish("http://0.0.0.0:8080/hello", new StoreService());
-        System.out.println("Listen in 80 port");
+import org.apache.catalina.startup.Tomcat;
+import org.apache.catalina.Context;
+
+import com.SOAPWrapperREST.Api;
+
+public class App {
+    public void init() throws Exception {
+        Tomcat tomcat = new Tomcat();
+        tomcat.getConnector().setProperty("address", "0.0.0.0");
+        tomcat.setPort(8080);
+
+        // Crear una aplicación web básica (necesita un contexto)
+        Context ctx = tomcat.addContext("", null);
+
+        // Registrar nuestro servlet
+        Tomcat.addServlet(ctx, "SoapServlet", new Api());
+        ctx.addServletMappingDecoded("/soap", "SoapServlet");
+
+        // Iniciar
+        tomcat.start();
+        tomcat.getServer().await();
     }
 }

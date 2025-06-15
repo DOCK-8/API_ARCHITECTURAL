@@ -36,6 +36,19 @@
       <artifactId>jaxws-rt</artifactId>
       <version>4.0.3</version>
     </dependency>
+    <!-- TOMCAT -->
+    <dependency>
+      <groupId>org.apache.tomcat.embed</groupId>
+      <artifactId>tomcat-embed-core</artifactId>
+      <version>11.0.7</version>
+    </dependency>
+    <!-- SERVERLET -->
+    <dependency>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
+      <version>6.0.0</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
@@ -51,7 +64,7 @@
           </execution>
         </executions>
         <configuration>
-          <mainClass>com.store.App</mainClass>
+          <mainClass>com.ServicesMain.RunServices</mainClass>
         </configuration>
       </plugin>
     </plugins>
