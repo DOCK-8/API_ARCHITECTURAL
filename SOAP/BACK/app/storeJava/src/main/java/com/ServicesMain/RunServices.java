@@ -1,6 +1,6 @@
 package com.ServicesMain;
 
-import com.store.App;
+import com.RESTService.App;
 import com.SOAPService.SoapServe;
 
 public class RunServices{
