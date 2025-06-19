@@ -8,15 +8,27 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.ServletException;
 
 public class IngenierosApi extends HttpServlet{
+  private void addHeaderCORS(HttpServletResponse response){
+      response.addHeader("Access-Control-Allow-Origin", "http://localhost:8081");
+      response.addHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+      response.addHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  }
   @Override
-  public void doGet(HttpServletRequest requestSoap, HttpServletResponse responseSoap) throws ServletException, IOException{
+  protected void doOptions(HttpServletRequest request, HttpServletResponse response) 
+          throws ServletException, IOException {
+      addHeaderCORS(response);
+      response.setStatus(HttpServletResponse.SC_OK);
+  }
+  @Override
+  public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
     String data = """
       <lab:getDataTable>
         <tabla>Ingenieros</tabla>
       </lab:getDataTable>
     """;
-    responseSoap.setContentType("text/xml;charset=UTF-8");
-    PrintWriter pw = responseSoap.getWriter();
+    addHeaderCORS(response);
+    response.setContentType("text/xml;charset=UTF-8");
+    PrintWriter pw = response.getWriter();
     pw.write(SoapFetchStruct.fetchSOAP(data).body());
   }
 }

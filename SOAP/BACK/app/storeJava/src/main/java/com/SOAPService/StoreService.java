@@ -8,6 +8,7 @@ import jakarta.jws.WebMethod;
 import jakarta.jws.WebParam;
 
 import java.util.List;
+import java.util.ArrayList;
 
 @WebService
 public class StoreService{
@@ -24,13 +25,21 @@ public class StoreService{
     return dtb.createDataTabla(tabla, dataGroup);
   }
   @WebMethod
-  public void updateDataTable(){
+  public String updateDataTable(@WebParam(name="tabla")String tabla, @WebParam(name="data")String data) throws Exception{
     MysqlData dtb = new MysqlData("database","EmpresaDB","root","root");
-    dtb.updateDataTabla();
+    String[] dataGroup = data.split("-");
+    return dtb.updateDataTabla(tabla, dataGroup);
   }
   @WebMethod
-  public void deleteDataTable(){
+  public String deleteDataTable(@WebParam(name="tabla")String tabla, @WebParam(name="data")String data) throws Exception{
     MysqlData dtb = new MysqlData("database","EmpresaDB","root","root");
-    dtb.deleteDataTabla();
+    String[] dataGroup = data.split("-");
+    return dtb.deleteDataTabla(tabla, dataGroup);
+  }
+  @WebMethod
+  public String testDataTable(@WebParam(name="tabla")String tabla, @WebParam(name="data")String data) throws Exception{
+    MysqlData dtb = new MysqlData("database","EmpresaDB","root","root");
+    String[] dataGroup = data.split("-");
+    return dtb.testRollbackCommit(dataGroup);
   }
 }

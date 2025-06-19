@@ -6,6 +6,8 @@ import com.struct.Registro;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
+import java.sql.PreparedStatement;
+import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -65,39 +67,101 @@ public class MysqlData{
     System.out.println("Conexión cerrada con la base de datos " + this.db);
     return registros;
   }
-  public ArrayList<String> getNameColumn(String table) throws Exception{
-    String query = "SELECT COLUMN_NAME FROM "+table;
-    ArrayList<String> column = new ArrayList<String>();
-    try{
-      Connection cn = this.connectionDB();
-      Statement st = cn.createStatement();
-      ResultSet rs = st.executeQuery(query);
-      while(rs.next()){
-        column.add(rs.getString(1));
-      }
-    }catch(SQLException e){
-      System.out.println("Error de la conexion con la base de datos");
+  public ArrayList<String> getNameColumn(String table) throws Exception {
+    ArrayList<String> columns = new ArrayList<>();
+
+    try (Connection cn = this.connectionDB()) {
+        DatabaseMetaData meta = cn.getMetaData();
+        ResultSet rs = meta.getColumns(null, null, table, null);
+        while (rs.next())
+            columns.add(rs.getString("COLUMN_NAME"));
+        rs.close();
+    } catch (SQLException e) {
+        System.out.println("Error al obtener las columnas de la tabla: " + e.getMessage());
+        throw e; // opcionalmente relanza la excepción
     }
-    return column;
+    return columns;
   }
   public String createDataTabla(String tabla, String[] data) throws Exception{
+    StringJoiner columnas = new StringJoiner(",", "(", ")");
+    int i = 0;
+    for (String col : getNameColumn(tabla))
+      if(i!=0)
+        columnas.add(col);
+
+    StringJoiner valores = new StringJoiner("','", "('", "')");
+    for (int val = 0; val < data.length-1; val++)
+        valores.add(data[val]);
+
     StringBuilder query = new StringBuilder("INSERT INTO ");
     query.append(tabla);
-    query.append(" (Nombre, Telefono, Fax) VALUES ");
-    StringJoiner dataRegistro = new StringJoiner(",", "(", ")");
-    for(String registro : data)
-      dataRegistro.add(registro);
-    query.append(dataRegistro.toString());
+    query.append(" ");
+    query.append(columnas.toString());
+    query.append(" VALUES ");
+    query.append(valores.toString());
+
+    System.out.println(query.toString());
+
     try{
       Connection cn = this.connectionDB();
       Statement st = cn.createStatement();
-      ResultSet rs = st.executeQuery(query.toString());
+      st.executeUpdate(query.toString());
       return "Registro Insertado Correctament en "+tabla;
     }catch(SQLException e){
       System.out.println("Error en la BD");
       return "No se pudo insertar el Registro en la base de datos\n"+e;
     }
   }
-  public void updateDataTabla(){}
-  public void deleteDataTabla(){}
+  public String updateDataTabla(String tabla, String[] data) throws Exception {
+      try {
+          ArrayList<String> columnas = getNameColumn(tabla);
+          String columnaClave = columnas.get(0);  // Suponemos que la primera es la clave primaria
+          String valorClave = data[0];            // Valor de esa clave (data[0])
+
+          StringJoiner sets = new StringJoiner(", ");
+          for (int i = 1; i < columnas.size(); i++) {
+              sets.add(columnas.get(i) + " = ?");
+          }
+          String query = "UPDATE " + tabla + " SET " + sets + " WHERE " + columnaClave + " = ?";
+          try (Connection cn = this.connectionDB(); PreparedStatement pst = cn.prepareStatement(query)) {
+              int index = 1;
+              // Insertamos los valores nuevos, desde data[1] en adelante
+              for (int i = 1; i < data.length-1; i++) {
+                  pst.setString(index++, data[i]);
+              }
+              // Valor de la clave para el WHERE
+              pst.setString(index, valorClave);
+              int filas = pst.executeUpdate();
+              return filas + " fila(s) actualizada(s) correctamente.";
+          }
+      } catch (Exception e) {
+          return "Error al actualizar datos: " + e.getMessage();
+      }
+  }
+  public String deleteDataTabla(String tabla, String[] data) throws Exception{
+    String query = "DELETE FROM " + tabla + " WHERE " + getNameColumn(tabla).get(0)+"='"+data[0]+"'";
+    try (Connection cn = this.connectionDB(); Statement st = cn.createStatement()) {
+      int filas = st.executeUpdate(query);
+      return filas + " fila(s) eliminada(s) correctamente.";
+    } catch (SQLException e) {
+      return "Error al eliminar datos: " + e.getMessage();
+    }
+  }
+  public String testRollbackCommit(String[] query){
+    try(Connection cn = this.connectionDB()){
+      cn.setAutoCommit(false);
+      try(Statement st = cn.createStatement()){
+        for (int i = 0; i < query.length-1; i++)
+          st.executeUpdate(query[i]);
+        cn.commit();
+        return "Test ejecutada correctamente";
+      }catch(SQLException e){
+        cn.rollback();
+        return "Error de carga de datos: " + e.getMessage();
+      }
+    }catch(Exception e){
+      return "Error de prueba: " + e.getMessage();
+    }
+  }
 }
+

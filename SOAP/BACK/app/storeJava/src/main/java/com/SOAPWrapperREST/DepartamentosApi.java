@@ -10,8 +10,19 @@ import java.io.FileReader;
 public class DepartamentosApi extends HttpServlet {
     private String message;
     @Override
-    public void init() throws ServletException {
-        this.message = "Hello World";
+    public void init() throws ServletException {}
+
+    private void addHeaderCORS(HttpServletResponse response){
+        response.addHeader("Access-Control-Allow-Origin", "http://localhost:8081");
+        response.addHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+        response.addHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        response.addHeader("Access-Control-Max-Age", "3600");
+    }
+    @Override
+    protected void doOptions(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+        addHeaderCORS(response);
+        response.setStatus(HttpServletResponse.SC_OK);
     }
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
@@ -20,24 +31,81 @@ public class DepartamentosApi extends HttpServlet {
             <tabla>Departamentos</tabla>
         </lab:getDataTable>
         """;
-        response.addHeader("Access-Control-Allow-Origin", "http://localhost:8081");
-        response.addHeader("Access-Control-Allow-Methods", "GET");
-        response.addHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        this.addHeaderCORS(response);
         response.setContentType("text/xml;charset=UTF-8");
         PrintWriter out = response.getWriter();
         out.write(SoapFetchStruct.fetchSOAP(data).body());
     }
     @Override
-    public void doPost(HttpServletRequest requestSoap, HttpServletResponse responseSoap) throws ServletException, IOException{
-        responseSoap.setContentType("text/html; charset=UTF-8");
+    public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
+        this.addHeaderCORS(response);
+        response.setContentType("text/html; charset=UTF-8");
         String contentText;
         StringBuilder body = new StringBuilder();
-        BufferedReader br = requestSoap.getReader();
+        BufferedReader br = request.getReader();
         while((contentText = br.readLine()) != null){
             body.append(contentText);
         }
-        PrintWriter out = responseSoap.getWriter();
-        out.println("<p>"+body.toString()+"</p>");
+        String tipo = request.getParameter("tipo");
+        String data;
+        if(tipo.equals("test")){
+            data = """
+            <lab:testDataTable>
+                <tabla>Departamentos</tabla>
+                <data>"""+body.toString()+"""
+                </data>
+            </lab:testDataTable>
+            """;
+        }
+        else{
+            data = """
+            <lab:createDataTable>
+                <tabla>Departamentos</tabla>
+                <data>"""+body.toString()+"""
+                </data>
+            </lab:createDataTable>
+            """;
+        }
+        PrintWriter out = response.getWriter();
+        out.println("<p>"+SoapFetchStruct.fetchSOAP(data).body()+"</p>");
+    }
+    @Override
+    public void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException,IOException{
+        this.addHeaderCORS(response);
+        response.setContentType("text/html");
+        String contentText;
+        StringBuilder body = new StringBuilder();
+        BufferedReader br = request.getReader();
+        while((contentText = br.readLine()) != null)
+            body.append(contentText);
+        String data = """
+            <lab:updateDataTable>
+                <tabla>Departamentos</tabla>
+                <data>"""+body.toString()+"""
+                </data>
+            </lab:updateDataTable>
+        """;
+        PrintWriter out = response.getWriter();
+        out.write("<p>"+SoapFetchStruct.fetchSOAP(data).body()+"</p>");
+    }
+    @Override
+    public void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException,IOException{
+        this.addHeaderCORS(response);
+        response.setContentType("text/html");
+        String contentText;
+        StringBuilder body = new StringBuilder();
+        BufferedReader br = request.getReader();
+        while((contentText = br.readLine()) != null)
+            body.append(contentText);
+        String data = """
+            <lab:deleteDataTable>
+                <tabla>Departamentos</tabla>
+                <data>"""+body.toString()+"""
+                </data>
+            </lab:deleteDataTable>
+        """;
+        PrintWriter out = response.getWriter();
+        out.write("<p>"+SoapFetchStruct.fetchSOAP(data).body()+"</p>");
     }
     @Override
     public void destroy() {
