@@ -13,8 +13,8 @@ public class DepartamentosApi extends HttpServlet {
     public void init() throws ServletException {}
 
     private void addHeaderCORS(HttpServletResponse response){
-        response.addHeader("Access-Control-Allow-Origin", "http://localhost:8081");
-        response.addHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+        response.addHeader("Access-Control-Allow-Origin", "http://localhost");
+        response.addHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, DELETE");
         response.addHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
         response.addHeader("Access-Control-Max-Age", "3600");
     }
@@ -26,11 +26,20 @@ public class DepartamentosApi extends HttpServlet {
     }
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
-        String data = """
-        <lab:getDataTable>
-            <tabla>Departamentos</tabla>
-        </lab:getDataTable>
-        """;
+        String tipo = request.getParameter("tipo");
+        String data;
+        if(tipo.equals("data"))
+            data = """
+            <lab:getColumnTable>
+                <table>Departamentos</table>
+            </lab:getColumnTable>
+            """;
+        else
+            data = """
+            <lab:getDataTable>
+                <tabla>Departamentos</tabla>
+            </lab:getDataTable>
+            """;
         this.addHeaderCORS(response);
         response.setContentType("text/xml;charset=UTF-8");
         PrintWriter out = response.getWriter();
@@ -67,7 +76,7 @@ public class DepartamentosApi extends HttpServlet {
             """;
         }
         PrintWriter out = response.getWriter();
-        out.println("<p>"+SoapFetchStruct.fetchSOAP(data).body()+"</p>");
+        out.println(SoapFetchStruct.fetchSOAP(data).body());
     }
     @Override
     public void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException,IOException{
@@ -105,7 +114,7 @@ public class DepartamentosApi extends HttpServlet {
             </lab:deleteDataTable>
         """;
         PrintWriter out = response.getWriter();
-        out.write("<p>"+SoapFetchStruct.fetchSOAP(data).body()+"</p>");
+        out.write(SoapFetchStruct.fetchSOAP(data).body());
     }
     @Override
     public void destroy() {

@@ -151,8 +151,10 @@ public class MysqlData{
     try(Connection cn = this.connectionDB()){
       cn.setAutoCommit(false);
       try(Statement st = cn.createStatement()){
-        for (int i = 0; i < query.length-1; i++)
+        for (int i = 0; i < query.length-1; i++){
           st.executeUpdate(query[i]);
+          System.out.println(query[i]);
+        }
         cn.commit();
         return "Test ejecutada correctamente";
       }catch(SQLException e){

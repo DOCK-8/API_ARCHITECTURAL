@@ -13,6 +13,11 @@ import java.util.ArrayList;
 @WebService
 public class StoreService{
   @WebMethod
+  public ArrayList<String> getColumnTable(@WebParam(name="table") String tabla) throws Exception{
+    MysqlData dtb = new MysqlData("database","EmpresaDB","root","root");
+    return dtb.getNameColumn(tabla);
+  }
+  @WebMethod
   public List<Registro> getDataTable(@WebParam(name="tabla") String tabla) throws Exception{
     MysqlData dtb = new MysqlData("database","EmpresaDB","root","root");
     System.out.println("Reviza la consola :)");
